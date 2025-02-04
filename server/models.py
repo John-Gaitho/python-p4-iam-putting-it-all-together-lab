@@ -1,15 +1,26 @@
-from sqlalchemy.orm import validates
-from sqlalchemy.ext.hybrid import hybrid_property
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from sqlalchemy import MetaData
 from sqlalchemy_serializer import SerializerMixin
 
-from config import db, bcrypt
+metadata = MetaData(naming_convention={
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+})
 
-class User(db.Model, SerializerMixin):
-    __tablename__ = 'users'
+db = SQLAlchemy(metadata=metadata)
 
-    pass
+class Message(db.Model, SerializerMixin):
+    __tablename__ = 'messages'
 
-class Recipe(db.Model, SerializerMixin):
-    __tablename__ = 'recipes'
-    
-    pass
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.String, nullable=False)
+    username = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'body': self.body,
+            'username': self.username,
+            'created_at': self.created_at.isoformat(),  
+        }
